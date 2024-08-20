@@ -11,8 +11,8 @@ AIInputManager.prototype.runningAI = false;
 AIInputManager.prototype.mode = AIMode.SMART;
 AIInputManager.prototype.speed = AISpeed.FAST;
 AIInputManager.prototype.tileGenerator = TileGenerator.RANDOM;
-AIInputManager.prototype.fastMoveTime = 200; // milliseconds
-AIInputManager.prototype.slowMoveTime = 750; // milliseconds
+AIInputManager.prototype.fastMoveTime = 200; 
+AIInputManager.prototype.slowMoveTime = 750; 
 AIInputManager.prototype.game = null;
 AIInputManager.prototype.stats = [];
 AIInputManager.prototype.stateBufferSize = 10;
@@ -35,7 +35,6 @@ AIInputManager.prototype.emit = function (event, data) {
 };
 
 AIInputManager.prototype.listen = function () {
-  // Respond to button presses
   this.bindButtonPress(".retry-button", this.restart);
   this.bindButtonPress(".pause-button", this.pauseOrResume);
   this.bindButtonPress(".smart-ai-button", function() { this.setAIMode(AIMode.SMART); });
@@ -51,9 +50,6 @@ AIInputManager.prototype.listen = function () {
   this.bindButtonPress(".copy-button", this.copyStates);
   this.bindButtonPress(".load-button", this.loadState);
 
-  // Start running the AI.
-  // Wait for a specified time interval before making each move
-  // so the AI is watchable
   this.startAI();
 };
 
@@ -64,7 +60,6 @@ if (!Math.log2) {
 }
 
 AIInputManager.prototype.updateStats = function() {
-  // Find the highest number achieved.
   var self = this;
   var maxValue = 0;
   this.game.grid.eachCell(function(x, y, tile) {
@@ -80,12 +75,11 @@ AIInputManager.prototype.updateStats = function() {
   for (var i = 0; i < this.stats.length; i++) {
     total += this.stats[i];
   }
-  
-  // Update the HTML
+
   html = "";
   for (var i = 0; i < this.stats.length; i++) {
     var percentage = this.stats[i] / total * 100;
-    // Round to 1 decimal place
+
     percentage = Math.round(percentage * 10) / 10;
     if (this.stats[i] > 0) {
       html += "<div class='stats-number'>" + Math.pow(2, i) + ":</div>";
@@ -115,7 +109,7 @@ AIInputManager.prototype.setAIMode = function(mode) {
 
 AIInputManager.prototype.setAISpeed = function(speed) {
   this.speed = speed;
-  // Restart the AI at the new speed.
+  
   if (this.runningAI) {
     this.stopAI();
     this.startAI();
@@ -141,25 +135,22 @@ AIInputManager.prototype.nextMove = function() {
   var move = this.ai.nextMove();
   this.emit("move", move);
 
-  // If the game is over, do a longer wait and start again.
   if (this.game.over) {
-    // Update stats
     this.updateStats();
-    // Wait a bit, then start a new game.
     this.stopAI();
     setTimeout(function() {
       self.emit("restart");
       self.startAI();
     }, 5000);
-  } else if (this.speed == AISpeed.FULL && this.runningAI) {
-    // Call nextMove continuously when in full speed.
-    // Call this function again on a timeout so the browser
-    // has a chance to update the screen
+  }
+  else if (this.speed == AISpeed.FULL && this.runningAI) {
     setTimeout(this.nextMove.bind(this));
   }
+
   if (this.prevStates.length >= this.stateBufferSize) {
     this.prevStates.shift();
   }
+
   this.prevStates.push(this.game.grid.serialize());
 }
 
@@ -182,7 +173,6 @@ AIInputManager.prototype.stopAI = function() {
   this.runningAI = false;
   clearInterval(this.aiID);
 }
-
 
 AIInputManager.prototype.restart = function (event) {
   event.preventDefault();
@@ -216,11 +206,12 @@ AIInputManager.prototype.copyStates = function (event) {
   }
   $(".copy-json").html(html);
 };
+
 AIInputManager.prototype.loadState = function (event) {
   var stateJSON = $(".state-input").val();
   var state = JSON.parse(stateJSON);
   this.game.grid  = new Grid(state.size, state.cells);
-  // Update the actuator
+  
   this.game.actuate();
 }
 
